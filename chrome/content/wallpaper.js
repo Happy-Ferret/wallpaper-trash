@@ -124,6 +124,9 @@ class Wallpaper {
     var rv = this.fp.show();
     if (rv == this.nsIFilePicker.returnOK || rv == this.nsIFilePicker.returnReplace) {
       var path = this.fp.fileURL.spec;
+      var mimeService = Components.classes["@mozilla.org/mime;1"]
+                            .getService(Components.interfaces.nsIMIMEService);
+      console.log(mimeService.getTypeFromFile(this.fp.file));
 
       // Async issue. It's why we have to "load" the wallpaper twice.
       // Message takes a while to receive, so renderWallpaper actually gets the old
