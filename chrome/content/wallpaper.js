@@ -33,6 +33,14 @@ class Wallpaper {
     this.init(contentWindow);
   }
 
+  get wallpaperURL() {
+    return Preferences.get(`shell.wallpaper.URL`);
+  }
+  
+  get wallpaperType() {
+    return Preferences.get(`shell.wallpaper.type`);
+  }
+
   async init(contentWindow) {
     this._window = contentWindow;
     this._tourItems = [];
@@ -40,7 +48,7 @@ class Wallpaper {
 
     this.nsIFilePicker = Ci.nsIFilePicker;
     this.fp = Cc["@mozilla.org/filepicker;1"].createInstance(this.nsIFilePicker);
-    
+
     this.fp.appendFilter("Animated", "*.webm");
     this.fp.appendFilter("Still", "*.jpg");
     this.fp.init(this._window, "Select a wallpaper", this.nsIFilePicker.modeOpen);
@@ -65,7 +73,7 @@ class Wallpaper {
     this._option = this._renderOption();
     this._wallpaperView = test2.renderWallpaperView(this._window);
     container.insertAdjacentElement("beforebegin", this._wallpaperView);
-    this._wallpaper = test2.renderWallpaper(this._window, { url, type });
+    this._wallpaper = test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType })
 
     var container = this._window.document.getElementById("newtab-customize-overlay");
     var container2 = this._window.document.getElementById("newtab-customize-panel-inner-wrapper");
@@ -111,13 +119,28 @@ class Wallpaper {
     }
   }
 
-    _selectWallpaper(evt) {
+  _selectWallpaper(evt) {
     // evt.target.fp.show()
     var rv = this.fp.show();
     if (rv == this.nsIFilePicker.returnOK || rv == this.nsIFilePicker.returnReplace) {
-      var path = this.fp.file.path;
-      console.log(path);
+      var path = this.fp.fileURL.spec;
+
+      // Async issue. It's why we have to "load" the wallpaper twice.
+      // Message takes a while to receive, so renderWallpaper actually gets the old
+      // wallpaper URL on the first try.
+      this.sendMessageToChrome("set-prefs", [
+        {
+          name: "shell.wallpaper.URL",
+          value: path
+        },
+        {
+          name: "shell.wallpaper.type",
+          value: "animated"
+        }
+      ]);
     }
+    setTimeout(()=>
+    test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }),200)
   }
 
   /**
@@ -130,9 +153,11 @@ class Wallpaper {
     });
   }
 
+  // Implement "receiveMessageFromChrome" here, then find a way to wrap test2.renderWallpaper into a callback interface waiting for the method to return.
+
   handleEvent(evt) {
     switch (evt.target.id) {
-        case "newtab-customize-wallpaper":
+      case "newtab-customize-wallpaper":
         this._selectWallpaper()
         break;
     }
@@ -160,6 +185,14 @@ class Wallpaper {
         value: true
       }
     ]);
+  }
+
+  _getWallpaper() {
+    return Preferences.get(`shell.wallpaper.URL`);
+  }
+
+  _getWallpaperType() {
+    return Preferences.get(`shell.wallpaper.type`);
   }
 
   _renderWallpaper() {
@@ -210,17 +243,17 @@ class Wallpaper {
   }
 }
 
-  addEventListener("load", function onLoad(evt) {
-    if (!content || evt.target != content.document) {
-      return;
-    }
-    removeEventListener("load", onLoad);
+addEventListener("load", function onLoad(evt) {
+  if (!content || evt.target != content.document) {
+    return;
+  }
+  removeEventListener("load", onLoad);
 
-    let window = evt.target.defaultView;
-    let location = window.location.href;
-    if (location == ABOUT_NEWTAB_URL || location == ABOUT_HOME_URL) {
-      window.requestIdleCallback(() => {
-        new Wallpaper(window);
-      });
-    }
-  }, true);
+  let window = evt.target.defaultView;
+  let location = window.location.href;
+  if (location == ABOUT_NEWTAB_URL || location == ABOUT_HOME_URL) {
+    window.requestIdleCallback(() => {
+      new Wallpaper(window);
+    });
+  }
+}, true);

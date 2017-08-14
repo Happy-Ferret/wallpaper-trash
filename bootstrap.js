@@ -20,7 +20,9 @@ const PREF_WHITELIST = [
   "browser.wallpaper.notification.lastPrompted",
   "browser.wallpaper.tourset-version",
   "browser.wallpaper.tour-type",
-  "browser.wallpaper.seen-tourset-version"
+  "browser.wallpaper.seen-tourset-version",
+  "shell.wallpaper.URL",
+  "shell.wallpaper.type"
 ];
 
 [
@@ -39,9 +41,32 @@ const PREFS = {
   "tourset-version": 1
 };
 
+const PREF_BRANCH2 = "shell.wallpaper.";
+const PREFS2 = {
+  "URL": "resource://wallpaper/Opera.webm",
+  "type": "animated"
+};
+
 function setDefaultPrefs() {
   let branch = Services.prefs.getDefaultBranch(PREF_BRANCH);
   for (let [key, val] in Iterator(PREFS)) {
+    switch (typeof val) {
+      case "boolean":
+        branch.setBoolPref(key, val);
+        break;
+      case "number":
+        branch.setIntPref(key, val);
+        break;
+      case "string":
+        branch.setCharPref(key, val);
+        break;
+    }
+  }
+}
+
+function setDefaultPrefs2() {
+  let branch = Services.prefs.getDefaultBranch(PREF_BRANCH2);
+  for (let [key, val] in Iterator(PREFS2)) {
     switch (typeof val) {
       case "boolean":
         branch.setBoolPref(key, val);
@@ -86,6 +111,7 @@ function initContentMessageListener() {
 
 function install(aData, aReason) {
   setDefaultPrefs();
+  setDefaultPrefs2();
 }
 
 function uninstall(aData, aReason) {}
