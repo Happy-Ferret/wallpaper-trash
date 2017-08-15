@@ -151,8 +151,8 @@ class Wallpaper {
       this.wallpaperURL = path;
       this.wallpaperType = type;
     }
-    setTimeout(() =>
-      test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }), 200)
+    this._window.requestIdleCallback(() =>
+      test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }))
   }
 
   /**
