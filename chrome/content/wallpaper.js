@@ -6,7 +6,7 @@
 
 "use strict";
 
-const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/Preferences.jsm");
 const { require } = Cu.import("resource://gre/modules/commonjs/toolkit/require.js", {})
@@ -36,9 +36,26 @@ class Wallpaper {
   get wallpaperURL() {
     return Preferences.get(`shell.wallpaper.URL`);
   }
-  
+
   get wallpaperType() {
     return Preferences.get(`shell.wallpaper.type`);
+  }
+
+  set wallpaperURL(URL) {
+    this.sendMessageToChrome("set-prefs", [
+      {
+        name: "shell.wallpaper.URL",
+        value: URL
+      }])
+  }
+
+  set wallpaperType(type) {
+    this.sendMessageToChrome("set-prefs", [
+      {
+        name: "shell.wallpaper.type",
+        value: type,
+      }
+    ]);
   }
 
   async init(contentWindow) {
@@ -125,25 +142,17 @@ class Wallpaper {
     if (rv == this.nsIFilePicker.returnOK || rv == this.nsIFilePicker.returnReplace) {
       var path = this.fp.fileURL.spec;
       var mimeService = Components.classes["@mozilla.org/mime;1"]
-                            .getService(Components.interfaces.nsIMIMEService);
-      console.log(mimeService.getTypeFromFile(this.fp.file));
+        .getService(Components.interfaces.nsIMIMEService);
+      var type = mimeService.getTypeFromFile(this.fp.file);
 
       // Async issue. It's why we have to "load" the wallpaper twice.
       // Message takes a while to receive, so renderWallpaper actually gets the old
       // wallpaper URL on the first try.
-      this.sendMessageToChrome("set-prefs", [
-        {
-          name: "shell.wallpaper.URL",
-          value: path
-        },
-        {
-          name: "shell.wallpaper.type",
-          value: "animated"
-        }
-      ]);
+      this.wallpaperURL = path;
+      this.wallpaperType = type;
     }
-    setTimeout(()=>
-    test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }),200)
+    setTimeout(() =>
+      test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }), 200)
   }
 
   /**
@@ -188,14 +197,6 @@ class Wallpaper {
         value: true
       }
     ]);
-  }
-
-  _getWallpaper() {
-    return Preferences.get(`shell.wallpaper.URL`);
-  }
-
-  _getWallpaperType() {
-    return Preferences.get(`shell.wallpaper.type`);
   }
 
   _renderWallpaper() {

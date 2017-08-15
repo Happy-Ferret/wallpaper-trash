@@ -13,7 +13,7 @@ class Foo {
 
   renderWallpaper(win, struct) {
     // let url = "file:///C:/Users/marku/Desktop/opera.webm"
-    if (struct.type == "animated") {
+    if (struct.type == "video/webm") {
       let div = win.window.document.getElementById("wallpaper");
       div.innerHTML = `
        <video style="height: 100%; width: 100%; object-fit: cover; object-position: center center;" 
@@ -21,13 +21,16 @@ class Foo {
        `;
       return div;
     }
-    else {
+    else if (struct.type == "image/jpeg" || struct.type == "image/png") {
       let div = win.window.document.getElementById("wallpaper");
       div.innerHTML = `
        <img style="height: 100%; width: 100%; object-fit: cover; object-position: center center;" 
        src="${struct.url}"></img>
        `;
       return div;
+    }
+    else {
+      return;
     }
   }
 }
