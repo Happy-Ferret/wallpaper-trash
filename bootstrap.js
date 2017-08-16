@@ -44,7 +44,7 @@ const PREFS = {
 const PREF_BRANCH2 = "shell.wallpaper.";
 const PREFS2 = {
   "URL": "resource://wallpaper/Opera.webm",
-  "type": "animated"
+  "type": "video/webm"
 };
 
 function setDefaultPrefs() {

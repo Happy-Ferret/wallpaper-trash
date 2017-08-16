@@ -66,8 +66,8 @@ class Wallpaper {
     this.nsIFilePicker = Ci.nsIFilePicker;
     this.fp = Cc["@mozilla.org/filepicker;1"].createInstance(this.nsIFilePicker);
 
-    this.fp.appendFilter("Animated", "*.webm");
-    this.fp.appendFilter("Still", "*.jpg");
+    this.fp.appendFilter("Animated", "*.webm; *.mp4");
+    this.fp.appendFilter("Still", "*.jpg; *.jpeg; *.png");
     this.fp.init(this._window, "Select a wallpaper", this.nsIFilePicker.modeOpen);
 
     // we only support the new user tour at this moment

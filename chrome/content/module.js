@@ -13,7 +13,7 @@ class Foo {
 
   renderWallpaper(win, struct) {
     // let url = "file:///C:/Users/marku/Desktop/opera.webm"
-    if (struct.type == "video/webm") {
+    if (struct.type == "video/webm" || struct.type == "video/mp4" ) {
       let div = win.window.document.getElementById("wallpaper");
       div.innerHTML = `
        <video style="height: 100%; width: 100%; object-fit: cover; object-position: center center;" 
