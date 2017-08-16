@@ -15,14 +15,8 @@ var test = require("./module");
 var test2 = new test();
 
 const wallpaper_CSS_URL = "resource://wallpaper/wallpaper.css";
-const ABOUT_HOME_URL = "about:home";
 const ABOUT_NEWTAB_URL = "about:newtab";
 const BUNDLE_URI = "chrome://wallpaper/locale/wallpaper.properties";
-const UITOUR_JS_URI = "resource://wallpaper/lib/UITour-lib.js";
-const TOUR_AGENT_JS_URI = "resource://wallpaper/wallpaper-tour-agent.js";
-const BRAND_SHORT_NAME = Services.strings
-  .createBundle("chrome://branding/locale/brand.properties")
-  .GetStringFromName("brandShortName");
 
 /**
  * The script won't be initialized if we turned off wallpaper by
@@ -70,11 +64,6 @@ class Wallpaper {
     this.fp.appendFilter("Still", "*.jpg; *.jpeg; *.png");
     this.fp.init(this._window, "Select a wallpaper", this.nsIFilePicker.modeOpen);
 
-    // we only support the new user tour at this moment
-    if (Services.prefs.getStringPref("browser.wallpaper.tour-type", "update") !== "new") {
-      return;
-    }
-
     // We want to create and append elements after CSS is loaded so
     // no flash of style changes and no additional reflow.
     await this._loadCSS();
@@ -92,7 +81,6 @@ class Wallpaper {
     container.insertAdjacentElement("beforebegin", this._wallpaperView);
     this._wallpaper = test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType })
 
-    var container = this._window.document.getElementById("newtab-customize-overlay");
     var container2 = this._window.document.getElementById("newtab-customize-panel-inner-wrapper");
     var wallpaperContainer = this._window.document.getElementById("wallpaper");
 
@@ -102,38 +90,7 @@ class Wallpaper {
     // container.insertAdjacentElement("beforebegin", this._wallpaper);
     container2.appendChild(this._option)
 
-    this._loadJS(UITOUR_JS_URI);
-    this._loadJS(TOUR_AGENT_JS_URI);
-
-    // Destroy on unload. This is to ensure we remove all the stuff we left.
-    // No any leak out there.
-    this._window.addEventListener("unload", () => this.destroy());
-
     this._window.document.getElementById("newtab-customize-wallpaper").addEventListener("click", this);
-
-    this._initPrefObserver();
-  }
-
-  _initPrefObserver() {
-    if (this._prefsObserved) {
-      return;
-    }
-
-    this._prefsObserved = new Map();
-    this._prefsObserved.set("browser.wallpaper.hidden", prefValue => {
-      if (prefValue) {
-        this.destroy();
-      }
-    });
-  }
-
-  _clearPrefObserver() {
-    if (this._prefsObserved) {
-      for (let [name, callback] of this._prefsObserved) {
-        Preferences.ignore(name, callback);
-      }
-      this._prefsObserved = null;
-    }
   }
 
   _selectWallpaper(evt) {
@@ -175,41 +132,6 @@ class Wallpaper {
     }
   }
 
-  destroy() {
-    this._clearPrefObserver();
-    if (this._notificationBar) {
-      this._notificationBar.remove();
-    }
-  }
-
-  isTourCompleted(tourId) {
-    return Preferences.get(`browser.wallpaper.tour.${tourId}.completed`, false);
-  }
-
-  hide() {
-    this.sendMessageToChrome("set-prefs", [
-      {
-        name: "browser.wallpaper.hidden",
-        value: true
-      },
-      {
-        name: "browser.wallpaper.notification.finished",
-        value: true
-      }
-    ]);
-  }
-
-  _renderWallpaper() {
-    let div = this._window.document.createElement("div");
-    div.id = "wallpaper-overlay";
-    div.innerHTML = `
-       <div xmlns="http://www.w3.org/1999/xhtml" id="wallpaper" style="position: fixed; top: 0px; left: 0px; height: 100%; width: 100%; overflow: hidden;">
-       <video style="height: 100%; width: 100%; object-fit: cover; object-position: center center;" 
-       src="${url}" loop="true" autoplay="true"></video></div>
-       `;
-    return div;
-  }
-
   _renderOption() {
     let div = this._window.document.createElement("div");
     div.id = "newtab-customize-wallpaper";
@@ -237,14 +159,6 @@ class Wallpaper {
       doc.head.appendChild(link);
     });
   }
-
-  _loadJS(uri) {
-    let doc = this._window.document;
-    let script = doc.createElement("script");
-    script.type = "text/javascript";
-    script.src = uri;
-    doc.head.appendChild(script);
-  }
 }
 
 addEventListener("load", function onLoad(evt) {
@@ -255,7 +169,7 @@ addEventListener("load", function onLoad(evt) {
 
   let window = evt.target.defaultView;
   let location = window.location.href;
-  if (location == ABOUT_NEWTAB_URL || location == ABOUT_HOME_URL) {
+  if (location == ABOUT_NEWTAB_URL) {
     window.requestIdleCallback(() => {
       new Wallpaper(window);
     });
