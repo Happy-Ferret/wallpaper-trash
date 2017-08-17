@@ -1,6 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright (c) 2017, Mark "Happy-Ferret" Bauermeister
+ *
+ * This software may be modified and distributed under the terms
+ * of the BSD license.  See the LICENSE file for details.
+ */
 
 /* eslint-env mozilla/frame-script */
 
@@ -14,14 +16,11 @@ const { require } = Cu.import("resource://gre/modules/commonjs/toolkit/require.j
 var test = require("./module");
 var test2 = new test();
 
-const wallpaper_CSS_URL = "resource://wallpaper/wallpaper.css";
+const WALLPAPER_CSS_URL = "resource://wallpaper/wallpaper.css";
 const ABOUT_NEWTAB_URL = "about:newtab";
 const BUNDLE_URI = "chrome://wallpaper/locale/wallpaper.properties";
 
-/**
- * The script won't be initialized if we turned off wallpaper by
- * setting "browser.wallpaper.enabled" to false.
- */
+
 class Wallpaper {
   constructor(contentWindow) {
     this.init(contentWindow);
@@ -68,11 +67,9 @@ class Wallpaper {
     // no flash of style changes and no additional reflow.
     await this._loadCSS();
     this._bundle = Services.strings.createBundle(BUNDLE_URI);
+
     let url = "resource://wallpaper/Opera.webm";
     let type = "animated";
-
-    // let url = "file:///C:/Users/marku/Desktop/photo-1471068139873-46abd34a24b7.jpg";
-    // let type = "still";
 
     var container = this._window.document.getElementById("newtab-customize-overlay");
 
@@ -84,7 +81,6 @@ class Wallpaper {
     var container2 = this._window.document.getElementById("newtab-customize-panel-inner-wrapper");
     var wallpaperContainer = this._window.document.getElementById("wallpaper");
 
-    // this._window.document.body.insertAdjacentElement("beforebegin", this._wallpaperView);
     container.insertAdjacentElement("beforebegin", this._wallpaperView);
     // wallpaperContainer.innerHTML(this._wallpaper);
     // container.insertAdjacentElement("beforebegin", this._wallpaper);
@@ -94,7 +90,6 @@ class Wallpaper {
   }
 
   _selectWallpaper(evt) {
-    // evt.target.fp.show()
     var rv = this.fp.show();
     if (rv == this.nsIFilePicker.returnOK || rv == this.nsIFilePicker.returnReplace) {
       var path = this.fp.fileURL.spec;
@@ -102,9 +97,6 @@ class Wallpaper {
         .getService(Components.interfaces.nsIMIMEService);
       var type = mimeService.getTypeFromFile(this.fp.file);
 
-      // Async issue. It's why we have to "load" the wallpaper twice.
-      // Message takes a while to receive, so renderWallpaper actually gets the old
-      // wallpaper URL on the first try.
       this.wallpaperURL = path;
       this.wallpaperType = type;
     }
@@ -142,7 +134,7 @@ class Wallpaper {
             `;
 
     div.querySelector("label[for='newtab-customize-wallpaper']").textContent =
-      this._bundle.GetStringFromName("wallpaper.wallpaper.title");
+      this._bundle.GetStringFromName("wallpaper.option.button");
     return div;
   }
 
@@ -154,7 +146,7 @@ class Wallpaper {
       let link = doc.createElement("link");
       link.rel = "stylesheet";
       link.type = "text/css";
-      link.href = wallpaper_CSS_URL;
+      link.href = WALLPAPER_CSS_URL;
       link.addEventListener("load", resolve);
       doc.head.appendChild(link);
     });
