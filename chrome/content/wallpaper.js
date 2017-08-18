@@ -13,13 +13,12 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/Preferences.jsm");
 const { require } = Cu.import("resource://gre/modules/commonjs/toolkit/require.js", {})
 
-var test = require("./module");
-var test2 = new test();
+const Render = require("./modules/render");
+const IPC = require("./modules/ipc");
 
 const WALLPAPER_CSS_URL = "resource://wallpaper/wallpaper.css";
 const ABOUT_NEWTAB_URL = "about:newtab";
 const BUNDLE_URI = "chrome://wallpaper/locale/wallpaper.properties";
-
 
 class Wallpaper {
   constructor(contentWindow) {
@@ -35,7 +34,7 @@ class Wallpaper {
   }
 
   set wallpaperURL(URL) {
-    this.sendMessageToChrome("set-prefs", [
+    IPC.sendMessageToChrome(this._window, "set-prefs", [
       {
         name: "shell.wallpaper.URL",
         value: URL
@@ -43,7 +42,7 @@ class Wallpaper {
   }
 
   set wallpaperType(type) {
-    this.sendMessageToChrome("set-prefs", [
+    IPC.sendMessageToChrome(this._window, "set-prefs", [
       {
         name: "shell.wallpaper.type",
         value: type,
@@ -74,9 +73,9 @@ class Wallpaper {
     var container = this._window.document.getElementById("newtab-customize-overlay");
 
     this._option = this._renderOption();
-    this._wallpaperView = test2.renderWallpaperView(this._window);
+    this._wallpaperView = Render.renderWallpaperView(this._window);
     container.insertAdjacentElement("beforebegin", this._wallpaperView);
-    this._wallpaper = test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType })
+    this._wallpaper = Render.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType })
 
     var container2 = this._window.document.getElementById("newtab-customize-panel-inner-wrapper");
     var wallpaperContainer = this._window.document.getElementById("wallpaper");
@@ -101,7 +100,7 @@ class Wallpaper {
       this.wallpaperType = type;
     }
     this._window.requestIdleCallback(() =>
-      test2.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }))
+      Render.renderWallpaper(this._window, { url: this.wallpaperURL, type: this.wallpaperType }))
   }
 
   /**
@@ -114,7 +113,7 @@ class Wallpaper {
     });
   }
 
-  // Implement "receiveMessageFromChrome" here, then find a way to wrap test2.renderWallpaper into a callback interface waiting for the method to return.
+  // Implement "receiveMessageFromChrome" here, then find a way to wrap Render.renderWallpaper into a callback interface waiting for the method to return.
 
   handleEvent(evt) {
     switch (evt.target.id) {

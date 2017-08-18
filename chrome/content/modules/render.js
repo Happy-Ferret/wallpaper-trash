@@ -4,11 +4,7 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-class Foo {
-  test() {
-    console.log("TEST");
-  }
-
+class Render {
   renderWallpaperView(win) {
     let div = win.window.document.createElement("div");
     div.id = "wallpaper";
@@ -18,7 +14,6 @@ class Foo {
   }
 
   renderWallpaper(win, struct) {
-    // let url = "file:///C:/Users/marku/Desktop/opera.webm"
     if (struct.type == "video/webm" || struct.type == "video/mp4" ) {
       let div = win.window.document.getElementById("wallpaper");
       div.innerHTML = `
@@ -41,4 +36,4 @@ class Foo {
   }
 }
 
-module.exports = Foo;
+module.exports = new Render();
