@@ -4,6 +4,8 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
+"use strict";
+
 class Render {
   renderWallpaperView(win) {
     let div = win.window.document.createElement("div");

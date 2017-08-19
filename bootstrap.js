@@ -3,6 +3,7 @@
  * This software may be modified and distributed under the terms
  * of the BSD license.  See the LICENSE file for details.
  */
+
 "use strict";
 
 const {utils: Cu} = Components;
@@ -19,8 +20,8 @@ const PREF_WHITELIST = [
 
 const PREF_BRANCH = "shell.wallpaper.";
 const PREFS = {
-  "URL": "resource://wallpaper/Opera.webm",
-  "type": "video/webm"
+  "URL": "resource://wallpaper/0.jpg",
+  "type": "image/jpeg"
 };
 
 function setDefaultPrefs() {
@@ -40,16 +41,6 @@ function setDefaultPrefs() {
   }
 }
 
-/**
- * Set pref. Why no `getPrefs` function is due to the priviledge level.
- * We cannot set prefs inside a framescript but can read.
- * For simplicity and effeciency, we still read prefs inside the framescript.
- *
- * @param {Array} prefs the array of prefs to set.
- *   The array element carrys info to set pref, should contain
- *   - {String} name the pref name, such as `browser.wallpaper.hidden`
- *   - {*} value the value to set
- **/
 function setPrefs(prefs) {
   prefs.forEach(pref => {
     if (PREF_WHITELIST.includes(pref.name)) {

@@ -4,13 +4,11 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
+"use strict";
+
 const {Ci} = require("chrome");
 
 class IPC {
-  /**
-   * @param {String} action the action to ask the chrome to do
-   * @param {Array} params the parameters for the action
-   */
   sendMessageToChrome(win, action, params) {
     const contentMessager = win.QueryInterface(Ci.nsIInterfaceRequestor)
                    .getInterface(Ci.nsIDocShell)
